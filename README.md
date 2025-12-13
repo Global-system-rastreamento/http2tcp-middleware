@@ -151,6 +151,49 @@ Configuration is managed via `pydantic` in `app/config/settings.py` and environm
   * `OUTPUT_PROTOCOL_HOST_ADRESSES`: Target TCP servers (IP/Port).
   * `REDIS_*`: Redis connection details.
 
+### Variáveis de ambiente obrigatórias (coloque em `.env` ou no ambiente)
+
+Antes de rodar a aplicação você deve definir algumas variáveis de ambiente que o projeto espera. Pode defini-las diretamente no sistema (recomendado para produção) ou em um arquivo `.env` na raiz do repositório durante o desenvolvimento.
+
+Variáveis esperadas (nomes):
+
+- `MT02_API_BASE_URL` — URL base da API MT02 (ex.: `https://api.exemplo.com`)
+- `MT02_API_KEY` — Chave/API token para acessar a API MT02
+- `GT06_MAIN_SERVER_HOST` — Host do servidor GT06 destino (ex.: `gt06.seu-host.com`)
+- `GT06_MAIN_SERVER_PORT` — Porta do servidor GT06 (ex.: `7011`)
+- `SUNTECH_MAIN_SERVER_HOST` — Host do servidor Suntech 4G destino
+- `SUNTECH_MAIN_SERVER_PORT` — Porta do servidor Suntech 4G
+- `REDIS_HOST` — Host do Redis (ex.: `localhost` ou `redis-service`)
+- `REDIS_PORT` — Porta do Redis (ex.: `6379`)
+- `REDIS_PASSWORD` — Senha do Redis (se aplicável)
+
+Exemplo de `.env` (coloque na raiz do projeto; **não** comite esse arquivo):
+
+```properties
+# MT02 API
+MT02_API_BASE_URL="http://www.brgps.com/open"
+MT02_API_KEY="<SUA_MT02_API_KEY_AQUI>"
+
+# GT06 server
+GT06_MAIN_SERVER_HOST="gt06.plataforma.app.br"
+GT06_MAIN_SERVER_PORT="7011"
+
+# Suntech 4G server
+SUNTECH_MAIN_SERVER_HOST="suntech4g.plataforma.app.br"
+SUNTECH_MAIN_SERVER_PORT="7010"
+
+# Redis
+REDIS_HOST="crossover.proxy.rlwy.net"
+REDIS_PORT="55858"
+REDIS_PASSWORD="<SUA_REDIS_PASSWORD_AQUI>"
+```
+
+Boas práticas:
+
+- Nunca inclua chaves ou senhas reais no controle de versão. Use placeholders nos exemplos.
+- Para produção, injete variáveis sensíveis via mecanismos seguros (secrets manager, CI/CD secrets ou variáveis de ambiente do orquestrador).
+- No desenvolvimento local, use um `.env` apenas para conveniência e adicione-o ao `.gitignore`.
+
 -----
 
 ## 📦 Installation & Running

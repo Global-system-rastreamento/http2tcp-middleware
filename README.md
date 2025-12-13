@@ -151,6 +151,76 @@ Configuration is managed via `pydantic` in `app/config/settings.py` and environm
   * `OUTPUT_PROTOCOL_HOST_ADRESSES`: Target TCP servers (IP/Port).
   * `REDIS_*`: Redis connection details.
 
+### Detailed settings reference
+
+The project uses `pydantic`/`pydantic-settings` via `app/config/settings.py`. Settings are loaded from a `.env` file by default (see `Settings.model_config`) and can be overridden with environment variables. Below is a concise reference for the most important settings you'll likely adjust.
+
+- `LOG_LEVEL` (str) — default: `"INFO"`
+  - Controls application logging. Example: `LOG_LEVEL=DEBUG`.
+
+- `REDIS_HOST` (str) — default: `"localhost"`
+  - Hostname or IP for Redis. Example: `REDIS_HOST=redis.local`.
+
+- `REDIS_PORT` (int) — default: `6379`
+  - Redis TCP port. Example: `REDIS_PORT=6379`.
+
+- `REDIS_PASSWORD` (str) — default: empty
+  - Password for Redis auth (if configured). Keep secrets out of VCS.
+
+- `REDIS_DB_MAIN` (int) — default: `15`
+  - Logical DB index used by the application for main storage.
+
+- `WORKERS_INPUT_SOURCE` (Dict[str, Dict[str,str]]) — default: `{ "mt02": {"module_path": "app.src.input.mt02.worker", "func_name": "worker"} }`
+  - Registers input worker modules the `main.py` will load dynamically. Each entry should include `module_path` and `func_name`.
+  - To override from environment, set a JSON string. Example in `.env`:
+
+    ```properties
+    WORKERS_INPUT_SOURCE='{"mt02": {"module_path": "app.src.input.mt02.worker", "func_name": "worker"}}'
+    ```
+
+- `MT02_API_BASE_URL` (str) — default: `"..."`
+  - Base URL used by the MT02 API client.
+
+- `MT02_API_KEY` (str) — default: `"..."`
+  - API key/token for MT02.
+
+- `MT02_WORKER_SLEEP_SECONDS` (int) — default: `30`
+  - How long the MT02 worker sleeps between polls.
+
+- `OUTPUT_PROTOCOL_HOST_ADRESSES` (Dict[str, tuple]) — default: uses `os.getenv("SUNTECH_MAIN_SERVER_HOST")` and `os.getenv("GT06_MAIN_SERVER_HOST")`
+  - Mapping of protocol name -> (host, port). By default this code reads `SUNTECH_MAIN_SERVER_*` and `GT06_MAIN_SERVER_*` environment variables. If you prefer, you can set `OUTPUT_PROTOCOL_HOST_ADRESSES` directly as a JSON string in the environment, for example:
+
+    ```properties
+    OUTPUT_PROTOCOL_HOST_ADRESSES='{"gt06": ["gt06.example.com", 7011], "suntech4g": ["suntech.example.com", 7010] }'
+    ```
+
+- `DEFAULT_OUTPUT_PROTOCOL` (str) — default: `"gt06"`
+  - Protocol chosen when device-specific output mapping is not found.
+
+- `GT06_LOCATION_PACKET_PROTOCOL_NUMBER` (int) — default: `0xA0`
+  - Numeric code used by GT06 builders to select packet variants.
+
+How to inspect loaded settings at runtime
+
+You can print or log the runtime settings object to verify loaded values. Example (useful in REPL or a small script):
+
+```python
+from app.config.settings import settings
+print(settings.model_dump())  # pydantic v2 safe dump
+```
+
+Notes on precedence and types
+
+- `pydantic-settings` reads `.env` (UTF-8) by default and also honors environment variables; environment variables take precedence over values in `.env`.
+- When overriding complex objects (dicts/tuples) via environment variables, pass valid JSON (strings) and ensure proper quoting in shell or `.env`.
+- Pydantic will coerce types where sensible (e.g., `"6379"` to int) but prefer correct types in the environment.
+
+If you add new settings
+
+- Add the default/value in `app/config/settings.py` and reference it in code via `from app.config.settings import settings; settings.MY_NEW_SETTING`.
+- For per-device protocol assignment, the middleware relies on Redis configuration — see `app/src/session/*` for lookup keys and formats.
+
+
 ### Variáveis de ambiente obrigatórias (coloque em `.env` ou no ambiente)
 
 Antes de rodar a aplicação você deve definir algumas variáveis de ambiente que o projeto espera. Pode defini-las diretamente no sistema (recomendado para produção) ou em um arquivo `.env` na raiz do repositório durante o desenvolvimento.
